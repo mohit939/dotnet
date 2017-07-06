@@ -1,0 +1,16 @@
+stages:
+  - build
+
+before_script:
+  - 'nuget restore MvcApplication1.sln'
+
+build:
+ stage: build
+ script:
+  - 'msbuild MvcApplication1.sln /t:Clean,ReBuild /p:Configuration=Debug;Platform="Any CPU"'
+  - 'nunit-console MvcApplication1/MvcApplication1.csproj'
+  - 'msbuild MvcApplication1.sln /t:ReBuild /p:Configuration=Release;Platform="Any CPU"'
+  - 'nuget pack "MvcApplication1/MvcApplication1.csproj" -IncludeReferencedProjects -Build -Properties Configuration=Release -Version 0.0.1.%CI_BUILD_ID%'
+  - 'nuget push \*.nupkg %NugetAPIKey% -Source %NugetSource%'
+ only:
+   - master
